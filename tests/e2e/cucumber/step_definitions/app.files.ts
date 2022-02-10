@@ -99,6 +99,52 @@ When(
   }
 )
 
+When(
+  /^"([^"]*)" creates public link to the following (resource|resources) via the (sidebar panel|quick action)$/,
+  async function (
+    this: World,
+    stepUser: string,
+    _: string,
+    actionType: string,
+    stepTable: DataTable
+  ) {
+    const actor = this.actorsEnvironment.getActor({ id: stepUser })
+    const { publicLink: publicLinkPage } = new FilesPage({ actor })
+
+    const shareInfo = stepTable.hashes().reduce((acc, stepRow) => {
+      const { resource, name, role, dateOfExpiration, password } = stepRow
+      if (!acc[resource]) {
+        acc[resource] = { name: '', role: '', dateOfExpiration: '', password: '' }
+      }
+      acc[resource].name = name
+      acc[resource].role = role
+      acc[resource].dateOfExpiration = dateOfExpiration
+      acc[resource].password = password
+      return acc
+    }, {})
+
+    for (const folder of Object.keys(shareInfo)) {
+      await publicLinkPage.publicLinkResource({
+        folder,
+        name: shareInfo[folder].name,
+        role: shareInfo[folder].role,
+        dateOfExpiration: shareInfo[folder].dateOfExpiration,
+        password: shareInfo[folder].password,
+        via: actionType === 'quick action' ? 'QUICK_ACTION' : 'SIDEBAR_PANEL'
+      })
+    }
+  }
+)
+
+Then(
+  '{string} should see the public link',
+  async function (this: World, stepUser: string): Promise<void> {
+    const actor = this.actorsEnvironment.getActor({ id: stepUser })
+    const { publicLink: publicLinkPage } = new FilesPage({ actor })
+    await publicLinkPage.isPublicLinkCreated()
+  }
+)
+
 Given(
   '{string} downloads the following file(s)',
   async function (this: World, stepUser: string, stepTable: DataTable) {
