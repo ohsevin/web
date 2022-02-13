@@ -41,11 +41,8 @@ export class PublicLink {
   }
 
   async selectExpiryDay(dayMonthYear: string): Promise<void> {
-    // const dayLocator = await this.actor.page.locator(
-    //   `//div[@id = 'oc-files-file-link-expire-date']//span[@tabindex='-1' or @tabindex='0'][@aria-label='${dayMonthYear}']`
-    // )
     const dayLocator = await this.actor.page.locator(
-      `//div[@class = "vc-popover-content direction-bottom vc-container"]//span[@class='vc-day-content vc-focusable'][@aria-label='${dayMonthYear}']`
+      `//div[@id = 'oc-files-file-link-expire-date']//span[@tabindex='-1' or @tabindex='0'][@aria-label='${dayMonthYear}']`
     )
     await dayLocator.click()
   }
