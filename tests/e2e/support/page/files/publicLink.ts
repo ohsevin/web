@@ -176,7 +176,6 @@ export class PublicLink {
         await filesCta.sidebar.openPanel({ page: page, name: 'links' })
         break
     }
-
     await this.publicLinkButtonLocator.click()
     await this.fillThePublicLinkForm({ name, password, role, dateOfExpiration })
     await this.createLinkButtonLocator.click()
