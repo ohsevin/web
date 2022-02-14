@@ -100,7 +100,7 @@ When(
 )
 
 When(
-  /^"([^"]*)" creates public link to the following (resource|resources) via the (sidebar panel|quick action)$/,
+  /^"([^"]*)" creates public link to the following resource(s)? via the (sidebar panel|quick action)$/,
   async function (
     this: World,
     stepUser: string,

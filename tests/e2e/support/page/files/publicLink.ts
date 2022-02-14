@@ -11,6 +11,9 @@ export class PublicLink {
   private readonly expirationDateDropdownLocator: Locator
   private readonly createLinkButtonLocator: Locator
   private readonly publicLinkLocator: Locator
+  private readonly yearButtonLocator: Locator
+  private readonly nextSpanYearLocator: Locator
+
 
   constructor({ actor }: { actor: Actor }) {
     this.actor = actor
@@ -22,6 +25,12 @@ export class PublicLink {
     this.createLinkButtonLocator = this.actor.page.locator('#oc-files-file-link-create')
     this.publicLinkLocator = this.actor.page.locator(
       '//a[@class = "oc-files-file-link-url oc-text-truncate"]'
+    )
+    this.yearButtonLocator = this.actor.page.locator(
+      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=2]`
+    )
+    this.nextSpanYearLocator = this.actor.page.locator(
+      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=3]`
     )
   }
 
@@ -87,17 +96,11 @@ export class PublicLink {
     await this.actor.page
       .locator(`//div[@class = 'vc-title'][contains(text(), '${monthAndYear}')]`)
       .click()
-    // year select locator
-    const yearButtonLocator = await this.actor.page.locator(
-      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=2]`
-    )
-    const nextSpanYear = await this.actor.page.locator(
-      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=3]`
-    )
-    if ((await yearButtonLocator.innerText()) !== splitDate[0]) {
-      await yearButtonLocator.click()
+
+    if ((await this.yearButtonLocator.innerText()) !== splitDate[0]) {
+      await this.yearButtonLocator.click()
       while (true) {
-        const nextYearSpanValue = await yearButtonLocator.innerText()
+        const nextYearSpanValue = await this.yearButtonLocator.innerText()
         const splitNextSpanYear = nextYearSpanValue.split('-')
         if (
           parseInt(splitDate[0]) >= parseInt(splitNextSpanYear[0]) &&
@@ -109,7 +112,7 @@ export class PublicLink {
           await yearLocator.click()
           break
         }
-        await nextSpanYear.click()
+        await this.nextSpanYearLocator.click()
       }
     }
 

@@ -127,6 +127,7 @@ export class AllFilesPage {
     const startUrl = page.url()
     const folderPaths = folder.split('/')
     const folderName = folderPaths.pop()
+
     if (folderPaths.length) {
       await filesCta.navigateToFolder({ page: page, path: folderPaths.join('/') })
     }
