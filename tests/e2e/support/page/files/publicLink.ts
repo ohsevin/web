@@ -13,7 +13,7 @@ export class PublicLink {
   private readonly publicLinkLocator: Locator
   private readonly yearButtonLocator: Locator
   private readonly nextSpanYearLocator: Locator
-
+  private readonly monthAndYearDropdownLocator: Locator
 
   constructor({ actor }: { actor: Actor }) {
     this.actor = actor
@@ -32,6 +32,7 @@ export class PublicLink {
     this.nextSpanYearLocator = this.actor.page.locator(
       `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=3]`
     )
+    this.monthAndYearDropdownLocator = this.actor.page.locator(`//div[@class = 'vc-title']`)
   }
 
   async selectRole(role: string): Promise<void> {
@@ -81,7 +82,7 @@ export class PublicLink {
       'November',
       'December'
     ]
-    const dateToday = new Date()
+
     const expiryDate = new Date(dataOfExpiration)
     const dayMonthYear =
       days[expiryDate.getDay()] +
@@ -91,11 +92,8 @@ export class PublicLink {
       expiryDate.getDate() +
       ', ' +
       expiryDate.getFullYear()
-    const monthAndYear = months[dateToday.getMonth()] + ' ' + dateToday.getFullYear()
-    // month and day dropdown locator click
-    await this.actor.page
-      .locator(`//div[@class = 'vc-title'][contains(text(), '${monthAndYear}')]`)
-      .click()
+    // month and day dropdown locator click (opens a year and month dropdown for selection)
+    await this.monthAndYearDropdownLocator.click()
 
     if ((await this.yearButtonLocator.innerText()) !== splitDate[0]) {
       await this.yearButtonLocator.click()
