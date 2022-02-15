@@ -57,15 +57,25 @@ export class PublicLink {
     await dayLocator.click()
   }
 
-  isValidDate = (expiryDate: string): void => {
-    const parsedDate = new Date(expiryDate)
-    if (new Date().getTime() - parsedDate.getTime() > 0) {
-      throw new Error('The Provided date is Already Expired !!')
-    }
+  // isValidDate = (expiryDate: string): void => {
+  //   const parsedDate = new Date(expiryDate)
+  //   if (new Date().getTime() - parsedDate.getTime() > 0) {
+  //     throw new Error('The Provided date is Already Expired !!')
+  //   }
+  // }
+  addDays = (date: Date, days: number): Date => {
+    date.setDate(date.getDate() + days)
+    return date
   }
 
   async selectDate(dataOfExpiration: string): Promise<void> {
-    const splitDate = dataOfExpiration.split('-')
+    // await this.actor.page.pause()
+    const dateToday = new Date()
+    const newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration))
+    // console.log(newExpiryDate)
+    const expiryDay = newExpiryDate.getDate()
+    const expiryMonth = ('0' + (newExpiryDate.getMonth() + 1)).slice(-2)
+    const expiryYear = newExpiryDate.getFullYear().toString()
     await this.expirationDateDropdownLocator.click()
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     const months = [
@@ -82,39 +92,45 @@ export class PublicLink {
       'November',
       'December'
     ]
-
-    const expiryDate = new Date(dataOfExpiration)
+    // const expiryDate = new Date(dataOfExpiration)
     const dayMonthYear =
-      days[expiryDate.getDay()] +
+      days[newExpiryDate.getDay()] +
       ', ' +
-      months[expiryDate.getMonth()] +
+      months[newExpiryDate.getMonth()] +
       ' ' +
-      expiryDate.getDate() +
+      expiryDay +
       ', ' +
-      expiryDate.getFullYear()
-    // month and day dropdown locator click (opens a year and month dropdown for selection)
-    await this.monthAndYearDropdownLocator.click()
+      expiryYear
+    console.log(dayMonthYear)
+    await this.actor.page.locator(`//div[@class = 'vc-title']`).click()
+    // year select locator
+    const yearButtonLocator = await this.actor.page.locator(
+      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=2]`
+    )
+    const nextSpanYear = await this.actor.page.locator(
+      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=3]`
+    )
 
-    if ((await this.yearButtonLocator.innerText()) !== splitDate[0]) {
-      await this.yearButtonLocator.click()
+    if ((await yearButtonLocator.innerText()) !== expiryYear) {
+      await yearButtonLocator.click()
       while (true) {
-        const nextYearSpanValue = await this.yearButtonLocator.innerText()
+        const nextYearSpanValue = await yearButtonLocator.innerText()
         const splitNextSpanYear = nextYearSpanValue.split('-')
         if (
-          parseInt(splitDate[0]) >= parseInt(splitNextSpanYear[0]) &&
-          parseInt(splitDate[0]) <= parseInt(splitNextSpanYear[1])
+          newExpiryDate.getFullYear() >= parseInt(splitNextSpanYear[0]) &&
+          newExpiryDate.getFullYear() <= parseInt(splitNextSpanYear[1])
         ) {
           const yearLocator = await this.actor.page.locator(
-            `//div[@class = "vc-nav-container"]/div[@class="vc-nav-items"]//span[contains(text(),'${splitDate[0]}')]`
+            `//div[@class = "vc-nav-container"]/div[@class="vc-nav-items"]//span[contains(text(),'${expiryYear}')]`
           )
           await yearLocator.click()
           break
         }
-        await this.nextSpanYearLocator.click()
+        await nextSpanYear.click()
       }
     }
 
-    await this.selectExpiryMonth(splitDate[0], splitDate[1])
+    await this.selectExpiryMonth(expiryYear, expiryMonth)
     await this.selectExpiryDay(dayMonthYear)
   }
 
@@ -155,7 +171,7 @@ export class PublicLink {
     via: 'SIDEBAR_PANEL' | 'QUICK_ACTION'
   }): Promise<void> {
     // check if the provided date is valid or not
-    this.isValidDate(dateOfExpiration)
+    // this.isValidDate(dateOfExpiration)
     const { page } = this.actor
     const folderPaths = folder.split('/')
     const folderName = folderPaths.pop()
