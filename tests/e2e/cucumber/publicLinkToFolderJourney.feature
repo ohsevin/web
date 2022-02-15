@@ -19,7 +19,7 @@ Feature: Create public link to folder
       | folderPublic/lorem.txt |
     When "Alice" creates a public link to the following resource via the sidebar panel
       | resource     | name         | role   | dateOfExpiration | password |
-      | folderPublic | myPublicLink | editor | +2 months          | 12345    |
-    Then "Alice" should see the public link
+      | folderPublic | myPublicLink | editor | +2 months        | 12345    |
+    Then "Alice" should see '1' public link
 
 

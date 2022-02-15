@@ -2,7 +2,6 @@ import { Actor } from '../../types'
 import { filesCta } from '../../cta'
 import { Locator, expect } from '@playwright/test'
 
-// @ts-ignore
 export class PublicLink {
   private readonly actor: Actor
   private readonly publicLinkButtonLocator: Locator
@@ -96,7 +95,7 @@ export class PublicLink {
     }
   }
 
-  addMonth = (months): Date => {
+  addMonth = (months: number): Date => {
     const date = new Date()
     date.setMonth(date.getMonth() + months)
     return date
@@ -119,10 +118,8 @@ export class PublicLink {
   }
 
   async selectDate(dataOfExpiration: string): Promise<void> {
-    await this.actor.page.pause()
-    // const dateToday = new Date()
     let newExpiryDate
-    await this.actor.page.pause()
+    // await this.actor.page.pause()
     if (this.dateType === 'day') {
       newExpiryDate = this.addDays(new Date(), parseInt(dataOfExpiration))
     } else if (this.dateType === 'week') {
