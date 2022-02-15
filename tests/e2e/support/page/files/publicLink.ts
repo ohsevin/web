@@ -57,12 +57,17 @@ export class PublicLink {
     await dayLocator.click()
   }
 
-  // isValidDate = (expiryDate: string): void => {
-  //   const parsedDate = new Date(expiryDate)
-  //   if (new Date().getTime() - parsedDate.getTime() > 0) {
-  //     throw new Error('The Provided date is Already Expired !!')
-  //   }
-  // }
+  isValidDate = (expiryDate: string): void => {
+    const parsedDate = new Date(expiryDate)
+    console.log(new Date().toDateString())
+    console.log(parsedDate.toDateString())
+    if (new Date().toDateString() !== parsedDate.toDateString()) {
+      if (new Date().getTime() - parsedDate.getTime() > 0) {
+        throw new Error('The Provided date is Already Expired !!')
+      }
+    }
+  }
+
   addDays = (date: Date, days: number): Date => {
     date.setDate(date.getDate() + days)
     return date
@@ -171,7 +176,10 @@ export class PublicLink {
     via: 'SIDEBAR_PANEL' | 'QUICK_ACTION'
   }): Promise<void> {
     // check if the provided date is valid or not
-    // this.isValidDate(dateOfExpiration)
+    this.isValidDate(dateOfExpiration)
+    await this.actor.page.pause()
+    // date or days check
+
     const { page } = this.actor
     const folderPaths = folder.split('/')
     const folderName = folderPaths.pop()
