@@ -7,19 +7,19 @@ Feature: Create public link to folder
     Given the following users have been created
       | Alice |
 
-    Scenario: Alice creates public link to a folder
-      When "Alice" logs in
-      And "Alice" opens the "files" app
-      And "Alice" creates the following folder
-        | folderPublic |
-      And "Alice" uploads the following resource
-        | resource  | to           |
-        | lorem.txt | folderPublic |
-      Then "Alice" should see the following resource
-        | folderPublic/lorem.txt |
-      When "Alice" creates public link to the following resource via the sidebar panel
-        | resource     | name         | role   | dateOfExpiration | password |
-        | folderPublic | myPublicLink | editor | 2022-02-19       | 12345    |
-      Then "Alice" should see the public link
+  Scenario: Alice creates public link to a folder
+    When "Alice" logs in
+    And "Alice" opens the "files" app
+    And "Alice" creates the following folder
+      | folderPublic |
+    And "Alice" uploads the following resource
+      | resource  | to           |
+      | lorem.txt | folderPublic |
+    Then "Alice" should see the following resource
+      | folderPublic/lorem.txt |
+    When "Alice" creates a public link to the following resource via the sidebar panel
+      | resource     | name         | role   | dateOfExpiration | password |
+      | folderPublic | myPublicLink | editor | +3 months        | 12345    |
+    Then "Alice" should see the public link
 
 

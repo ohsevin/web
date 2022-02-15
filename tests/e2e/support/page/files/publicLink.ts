@@ -63,12 +63,24 @@ export class PublicLink {
     return dateParsed instanceof Date && !isNaN(dateParsed.valueOf())
   }
 
+  checkDaysType = (stringDate: string): string => {
+    if (stringDate.includes('year')) {
+      return 'year'
+    } else if (stringDate.includes('month')) {
+      return 'month'
+    } else if (stringDate.includes('week')) {
+      return 'week'
+    } else {
+      return 'day'
+    }
+  }
+
   checkDateType = (expiryDate: string): string => {
     // validation for days
     if (expiryDate.charAt(0).includes('-')) {
-      throw new Error('The Provided date is negative !!')
+      throw new Error('The Provided date is negative and has already expired !!')
     } else if (expiryDate.charAt(0).includes('+')) {
-      return 'days'
+      return this.checkDaysType(expiryDate)
     }
     // validation for actual date format
     const parsedDate = new Date(expiryDate)
@@ -84,6 +96,18 @@ export class PublicLink {
     }
   }
 
+  addMonth = (months): Date => {
+    const date = new Date()
+    date.setMonth(date.getMonth() + months)
+    return date
+  }
+
+  daysBetweenMonths = (startDate: any, endDate: any) => {
+    const oneDay = 1000 * 60 * 60 * 24
+    const differenceMs = Math.abs(startDate - endDate)
+    return Math.round(differenceMs / oneDay)
+}
+
   addDays = (date: Date, days: number): Date => {
     date.setDate(date.getDate() + days)
     return date
@@ -93,10 +117,13 @@ export class PublicLink {
     // await this.actor.page.pause()
     const dateToday = new Date()
     let newExpiryDate
-    if (this.dateType === 'days') {
+    await this.actor.page.pause()
+    if (this.dateType === 'day') {
       newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration))
-    } else {
-      newExpiryDate = new Date(dataOfExpiration)
+    } else if (this.dateType === 'week') {
+      newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration) * 7)
+    } else if (this.dateType === 'month') {
+      newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration) * 7)
     }
     // console.log(newExpiryDate)
     const expiryDay = newExpiryDate.getDate()
