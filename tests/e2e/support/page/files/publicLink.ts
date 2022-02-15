@@ -102,11 +102,16 @@ export class PublicLink {
     return date
   }
 
-  daysBetweenMonths = (startDate: any, endDate: any) => {
-    const oneDay = 1000 * 60 * 60 * 24
-    const differenceMs = Math.abs(startDate - endDate)
-    return Math.round(differenceMs / oneDay)
-}
+  daysBetweenMonths = (startDate: Date, endDate: Date): number => {
+    const diff = Math.abs(startDate.getTime() - endDate.getTime())
+    return Math.ceil(diff / (1000 * 3600 * 24))
+  }
+
+  dateWithMonth = (noOfMonths: number): Date => {
+    const date = new Date()
+    date.setMonth(date.getMonth() + noOfMonths)
+    return date
+  }
 
   addDays = (date: Date, days: number): Date => {
     date.setDate(date.getDate() + days)
@@ -114,16 +119,22 @@ export class PublicLink {
   }
 
   async selectDate(dataOfExpiration: string): Promise<void> {
-    // await this.actor.page.pause()
-    const dateToday = new Date()
+    await this.actor.page.pause()
+    // const dateToday = new Date()
     let newExpiryDate
     await this.actor.page.pause()
     if (this.dateType === 'day') {
-      newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration))
+      newExpiryDate = this.addDays(new Date(), parseInt(dataOfExpiration))
     } else if (this.dateType === 'week') {
-      newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration) * 7)
+      newExpiryDate = this.addDays(new Date(), parseInt(dataOfExpiration) * 7)
     } else if (this.dateType === 'month') {
-      newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration) * 7)
+      const dateAterMonth = this.dateWithMonth(parseInt(dataOfExpiration))
+      const daysBetweenMonths = this.daysBetweenMonths(new Date(), dateAterMonth)
+      newExpiryDate = this.addDays(new Date(), daysBetweenMonths)
+    } else if (this.dateType === 'year') {
+      const dateAterYear = this.dateWithMonth(parseInt(dataOfExpiration) * 12)
+      const daysBetweenYear = this.daysBetweenMonths(new Date(), dateAterYear)
+      newExpiryDate = this.addDays(new Date(), daysBetweenYear)
     }
     // console.log(newExpiryDate)
     const expiryDay = newExpiryDate.getDate()
@@ -154,20 +165,12 @@ export class PublicLink {
       expiryDay +
       ', ' +
       expiryYear
-    console.log(dayMonthYear)
-    await this.actor.page.locator(`//div[@class = 'vc-title']`).click()
-    // year select locator
-    const yearButtonLocator = await this.actor.page.locator(
-      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=2]`
-    )
-    const nextSpanYear = await this.actor.page.locator(
-      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=3]`
-    )
-
-    if ((await yearButtonLocator.innerText()) !== expiryYear) {
-      await yearButtonLocator.click()
+    // console.log(dayMonthYear)
+    await this.monthAndYearDropdownLocator.click()
+    if ((await this.yearButtonLocator.innerText()) !== expiryYear) {
+      await this.yearButtonLocator.click()
       while (true) {
-        const nextYearSpanValue = await yearButtonLocator.innerText()
+        const nextYearSpanValue = await this.yearButtonLocator.innerText()
         const splitNextSpanYear = nextYearSpanValue.split('-')
         if (
           newExpiryDate.getFullYear() >= parseInt(splitNextSpanYear[0]) &&
@@ -179,7 +182,7 @@ export class PublicLink {
           await yearLocator.click()
           break
         }
-        await nextSpanYear.click()
+        await this.nextSpanYearLocator.click()
       }
     }
 
