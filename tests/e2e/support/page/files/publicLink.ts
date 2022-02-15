@@ -2,6 +2,7 @@ import { Actor } from '../../types'
 import { filesCta } from '../../cta'
 import { Locator, expect } from '@playwright/test'
 
+// @ts-ignore
 export class PublicLink {
   private readonly actor: Actor
   private readonly publicLinkButtonLocator: Locator
@@ -14,7 +15,7 @@ export class PublicLink {
   private readonly yearButtonLocator: Locator
   private readonly nextSpanYearLocator: Locator
   private readonly monthAndYearDropdownLocator: Locator
-
+  private dateType: string
   constructor({ actor }: { actor: Actor }) {
     this.actor = actor
     this.publicLinkButtonLocator = this.actor.page.locator('#files-file-link-add')
@@ -57,14 +58,29 @@ export class PublicLink {
     await dayLocator.click()
   }
 
-  isValidDate = (expiryDate: string): void => {
+  isValidDate = (date: string): boolean => {
+    const dateParsed = new Date(date)
+    return dateParsed instanceof Date && !isNaN(dateParsed.valueOf())
+  }
+
+  checkDateType = (expiryDate: string): string => {
+    // validation for days
+    if (expiryDate.charAt(0).includes('-')) {
+      throw new Error('The Provided date is negative !!')
+    } else if (expiryDate.charAt(0).includes('+')) {
+      return 'days'
+    }
+    // validation for actual date format
     const parsedDate = new Date(expiryDate)
-    console.log(new Date().toDateString())
-    console.log(parsedDate.toDateString())
-    if (new Date().toDateString() !== parsedDate.toDateString()) {
-      if (new Date().getTime() - parsedDate.getTime() > 0) {
+    if (this.isValidDate(expiryDate)) {
+      if (
+        new Date().toDateString() !== parsedDate.toDateString() &&
+        new Date().getTime() - parsedDate.getTime() > 0
+      ) {
         throw new Error('The Provided date is Already Expired !!')
       }
+    } else {
+      throw new Error('The Provided date is invalid !!')
     }
   }
 
@@ -76,7 +92,12 @@ export class PublicLink {
   async selectDate(dataOfExpiration: string): Promise<void> {
     // await this.actor.page.pause()
     const dateToday = new Date()
-    const newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration))
+    let newExpiryDate
+    if (this.dateType === 'days') {
+      newExpiryDate = this.addDays(dateToday, parseInt(dataOfExpiration))
+    } else {
+      newExpiryDate = new Date(dataOfExpiration)
+    }
     // console.log(newExpiryDate)
     const expiryDay = newExpiryDate.getDate()
     const expiryMonth = ('0' + (newExpiryDate.getMonth() + 1)).slice(-2)
@@ -175,15 +196,13 @@ export class PublicLink {
     password: string
     via: 'SIDEBAR_PANEL' | 'QUICK_ACTION'
   }): Promise<void> {
-    // check if the provided date is valid or not
-    this.isValidDate(dateOfExpiration)
-    await this.actor.page.pause()
+    // also check if the provided date is valid or not
+    this.dateType = this.checkDateType(dateOfExpiration)
+    // console.log(this.dateType)
     // date or days check
-
     const { page } = this.actor
     const folderPaths = folder.split('/')
     const folderName = folderPaths.pop()
-    await this.actor.page.pause()
     if (folderPaths.length) {
       await filesCta.navigateToFolder({ page: page, path: folderPaths.join('/') })
     }
