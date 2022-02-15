@@ -159,6 +159,7 @@ export class PublicLink {
     const { page } = this.actor
     const folderPaths = folder.split('/')
     const folderName = folderPaths.pop()
+    await this.actor.page.pause()
     if (folderPaths.length) {
       await filesCta.navigateToFolder({ page: page, path: folderPaths.join('/') })
     }
