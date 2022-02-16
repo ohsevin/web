@@ -77,7 +77,7 @@ export class PublicLink {
   checkDateType = (expiryDate: string): string => {
     // validation for days
     if (expiryDate.charAt(0).includes('-')) {
-      throw new Error('The Provided date is negative and has already expired !!')
+      throw new Error('The provided date is negative and has already expired !!')
     } else if (expiryDate.charAt(0).includes('+')) {
       return this.checkDaysType(expiryDate)
     }
@@ -93,12 +93,6 @@ export class PublicLink {
     } else {
       throw new Error('The Provided date is invalid !!')
     }
-  }
-
-  addMonth = (months: number): Date => {
-    const date = new Date()
-    date.setMonth(date.getMonth() + months)
-    return date
   }
 
   daysBetweenMonths = (startDate: Date, endDate: Date): number => {
@@ -117,23 +111,29 @@ export class PublicLink {
     return date
   }
 
-  async selectDate(dataOfExpiration: string): Promise<void> {
-    let newExpiryDate
-    // await this.actor.page.pause()
-    if (this.dateType === 'day') {
-      newExpiryDate = this.addDays(new Date(), parseInt(dataOfExpiration))
-    } else if (this.dateType === 'week') {
-      newExpiryDate = this.addDays(new Date(), parseInt(dataOfExpiration) * 7)
-    } else if (this.dateType === 'month') {
-      const dateAterMonth = this.dateWithMonth(parseInt(dataOfExpiration))
-      const daysBetweenMonths = this.daysBetweenMonths(new Date(), dateAterMonth)
-      newExpiryDate = this.addDays(new Date(), daysBetweenMonths)
-    } else if (this.dateType === 'year') {
-      const dateAterYear = this.dateWithMonth(parseInt(dataOfExpiration) * 12)
-      const daysBetweenYear = this.daysBetweenMonths(new Date(), dateAterYear)
-      newExpiryDate = this.addDays(new Date(), daysBetweenYear)
+  setActualExpiryDate = (dateType: string, dataOfExpiration: string): Date => {
+    switch (dateType) {
+      case 'day':
+        return this.addDays(new Date(), parseInt(dataOfExpiration))
+      case 'week':
+        return this.addDays(new Date(), parseInt(dataOfExpiration) * 7)
+      case 'month':
+        return this.addDays(
+          new Date(),
+          this.daysBetweenMonths(new Date(), this.dateWithMonth(parseInt(dataOfExpiration)))
+        )
+      case 'year':
+        return this.addDays(
+          new Date(),
+          this.daysBetweenMonths(new Date(), this.dateWithMonth(parseInt(dataOfExpiration) * 12))
+        )
     }
-    // console.log(newExpiryDate)
+  }
+
+  async selectDate(dataOfExpiration: string): Promise<void> {
+    // await this.actor.page.pause()
+    const newExpiryDate = this.setActualExpiryDate(this.dateType, dataOfExpiration)
+    console.log(newExpiryDate)
     const expiryDay = newExpiryDate.getDate()
     const expiryMonth = ('0' + (newExpiryDate.getMonth() + 1)).slice(-2)
     const expiryYear = newExpiryDate.getFullYear().toString()
@@ -248,6 +248,8 @@ export class PublicLink {
         await filesCta.sidebar.openPanel({ page: page, name: 'links' })
         break
     }
+
+    // await this.actor.page.pause()
     await this.publicLinkButtonLocator.click()
     await this.fillThePublicLinkForm({ name, password, role, dateOfExpiration })
     await this.createLinkButtonLocator.click()
