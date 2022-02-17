@@ -37,30 +37,27 @@ export class PublicLink {
 
   async selectRole(role: string): Promise<void> {
     await this.roleDropdownLocator.click()
-    // role locator
     await this.actor.page.locator(`//span[@id="files-role-${role}"]`).click()
   }
 
   async selectExpiryMonth(year: string, month: string): Promise<void> {
-    const monthLocator = await this.actor.page.locator(
-      `//div[@class = "vc-nav-container"]/div[@class="vc-nav-items"]//span[@data-id='${year}.${month}']`
-    )
+    const monthLocator = await this.actor.page.locator(`//span[@data-id='${year}.${month}']`)
     await monthLocator.click()
   }
 
   async selectExpiryDay(dayMonthYear: string): Promise<void> {
     const dayLocator = await this.actor.page.locator(
-      `//div[@id = 'oc-files-file-link-expire-date']//span[@tabindex='-1' or @tabindex='0'][@aria-label='${dayMonthYear}']`
+      `//span[@tabindex='-1' or @tabindex='0'][@aria-label='${dayMonthYear}']`
     )
     await dayLocator.click()
   }
 
   checkDaysType = (stringDate: string): string => {
-    if (stringDate.includes('year')) {
+    if (stringDate.includes('years')) {
       return 'year'
-    } else if (stringDate.includes('month')) {
+    } else if (stringDate.includes('months')) {
       return 'month'
-    } else if (stringDate.includes('week')) {
+    } else if (stringDate.includes('weeks')) {
       return 'week'
     } else {
       return 'day'
@@ -68,7 +65,6 @@ export class PublicLink {
   }
 
   isCheckDate = (expiryDate: string): string => {
-    // validation for days
     if (expiryDate.charAt(0).includes('-')) {
       throw new Error('The provided date is negative and has already expired !!')
     } else if (expiryDate.charAt(0).includes('+')) {
@@ -133,7 +129,6 @@ export class PublicLink {
       'November',
       'December'
     ]
-    // const expiryDate = new Date(dataOfExpiration)
     const dayMonthYear =
       days[newExpiryDate.getDay()] +
       ', ' +
@@ -166,8 +161,7 @@ export class PublicLink {
     await this.selectExpiryDay(dayMonthYear)
   }
 
-  async isOnePublicLinkCreated(noOfPublicLink: number): Promise<void> {
-    // await this.actor.page.pause()
+  async isPublicLinkCreated(noOfPublicLink: number): Promise<void> {
     await this.actor.page.waitForSelector(
       `//ul[@class = 'oc-list oc-list-divider oc-overflow-hidden oc-m-rm']/li`
     )
@@ -214,7 +208,6 @@ export class PublicLink {
     password: string
     via: 'SIDEBAR_PANEL' | 'QUICK_ACTION'
   }): Promise<void> {
-    // also check if the provided date is valid or not
     this.dateType = this.isCheckDate(dateOfExpiration)
     const { page } = this.actor
     const folderPaths = folder.split('/')

@@ -139,10 +139,9 @@ When(
 Then(
   '{string} should see {int} public link',
   async function (this: World, stepUser: string, noOfPublicLink: number): Promise<void> {
-    // console.log(noOfPublicLink)
     const actor = this.actorsEnvironment.getActor({ id: stepUser })
     const { publicLink: publicLinkPage } = new FilesPage({ actor })
-    await publicLinkPage.isOnePublicLinkCreated(noOfPublicLink)
+    await publicLinkPage.isPublicLinkCreated(noOfPublicLink)
   }
 )
 
