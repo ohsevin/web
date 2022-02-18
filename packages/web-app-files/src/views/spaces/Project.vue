@@ -18,7 +18,21 @@
           />
         </div>
         <div>
-          <h1 class="space-overview-name oc-mb-s">{{ space.name }}</h1>
+          <div class="oc-flex oc-flex-middle">
+            <h1 class="space-overview-name oc-my-s oc-mr-s">{{ space.name }}</h1>
+            <oc-button
+              v-if="!loadSharesTask.isRunning"
+              :aria-label="$gettext('Show invited people')"
+              appearance="raw"
+              @click="openSidebarSharePanel"
+            >
+              <oc-icon name="group" fill-type="line" size="small" />
+              <span
+                class="space-overview-people-count oc-text-small"
+                v-text="peopleCountString"
+              ></span>
+            </oc-button>
+          </div>
           <p v-if="space.description" class="oc-mt-rm">{{ space.description }}</p>
           <div>
             <div ref="markdownContainer" class="markdown-container" v-html="markdownContent"></div>
@@ -218,6 +232,14 @@ export default {
       }
     })
 
+    const loadSharesTask = useTask(function* (signal, ref) {
+      ref.loadCurrentFileOutgoingShares({
+        client: graphClient,
+        path: ref.space.id,
+        space: ref.space
+      })
+    })
+
     return {
       space,
       loadImageTask,
@@ -226,6 +248,7 @@ export default {
       imageContent,
       loadResourcesTask,
       loadFilesListTask,
+      loadSharesTask,
       resourceTargetLocation: createLocationSpaces('files-spaces-project'),
       paginatedResources,
       paginationPages,
@@ -250,7 +273,8 @@ export default {
       'selectedFiles',
       'currentFolder',
       'totalFilesCount',
-      'totalFilesSize'
+      'totalFilesSize',
+      'currentFileOutgoingCollaborators'
     ]),
 
     selected: {
@@ -278,6 +302,17 @@ export default {
     },
     displayThumbnails() {
       return !this.configuration.options.disablePreviews
+    },
+    peopleCountString() {
+      const translated = this.$ngettext(
+        '%{count} invited person',
+        '%{count} invited people',
+        this.currentFileOutgoingCollaborators.length
+      )
+
+      return this.$gettextInterpolate(translated, {
+        count: this.currentFileOutgoingCollaborators.length
+      })
     }
   },
   watch: {
@@ -295,6 +330,7 @@ export default {
   },
   async mounted() {
     await this.loadResourcesTask.perform(this, false, this.$route.params.item || '')
+    this.loadSharesTask.perform(this)
 
     document.title = `${this.space.name} - ${this.$route.meta.title}`
     this.$route.params.name = this.space.name
@@ -313,7 +349,11 @@ export default {
     }
   },
   methods: {
-    ...mapActions('Files', ['loadIndicators', 'loadPreview']),
+    ...mapActions('Files', ['loadIndicators', 'loadPreview', 'loadCurrentFileOutgoingShares']),
+    ...mapActions('Files/sidebar', {
+      openSidebarWithPanel: 'openWithPanel',
+      closeSidebar: 'close'
+    }),
     ...mapMutations('Files', [
       'SET_CURRENT_FOLDER',
       'LOAD_FILES',
@@ -368,6 +408,12 @@ export default {
 
     isResourceInSelection(resource) {
       return this.selected?.includes(resource)
+    },
+
+    async openSidebarSharePanel() {
+      await this.closeSidebar()
+      this.SET_FILE_SELECTION([this.space])
+      this.openSidebarWithPanel('space-share-item')
     }
   }
 }
@@ -392,6 +438,10 @@ export default {
     -webkit-box-orient: vertical;
     overflow: hidden;
     font-size: 1.5rem;
+  }
+
+  &-people-count {
+    white-space: nowrap;
   }
 
   .markdown-container * {

@@ -1,11 +1,13 @@
 <template>
   <div
-    :data-testid="`collaborator-${isUser ? 'user' : 'group'}-item-${share.collaborator.name}`"
-    class="files-collaborators-collaborator oc-flex oc-flex-middle oc-py-xs"
+    :data-testid="`collaborator-${isUser || isSpace ? 'user' : 'group'}-item-${
+      share.collaborator.name
+    }`"
+    class="files-collaborators-collaborator oc-flex oc-flex-middle oc-py-xs oc-flex-between"
   >
     <div class="oc-width-2-3 oc-flex oc-flex-middle" style="gap: 10px">
       <avatar-image
-        v-if="isUser"
+        v-if="isUser || isSpace"
         :userid="share.collaborator.name"
         :user-name="share.collaborator.displayName"
         :width="48"
@@ -64,7 +66,8 @@
         :share-id="share.id"
         :existing-permissions="share.customPermissions"
         :existing-role="share.role"
-        :allow-share-permission="!isOcis"
+        :collaborator-name="share.collaborator.name"
+        :allow-share-permission="!isOcis || isSpace"
         class="files-collaborators-collaborator-role"
         @optionChange="shareRoleChanged"
       />
@@ -76,6 +79,9 @@
         @expirationDateChanged="shareExpirationChanged"
         @removeShare="removeShare"
       />
+    </div>
+    <div v-else>
+      <span class="oc-mr-xs" v-text="share.role.label" />
     </div>
   </div>
 </template>
@@ -126,6 +132,10 @@ export default {
       return this.shareType === ShareTypes.user
     },
 
+    isSpace() {
+      return this.shareType === ShareTypes.space
+    },
+
     shareTypeText() {
       return this.$gettext(this.shareType.label)
     },
@@ -135,6 +145,11 @@ export default {
     },
 
     shareDisplayName() {
+      if (this.user.id === this.share.collaborator.name) {
+        return this.$gettextInterpolate(this.$gettext('%{collaboratorName} (me)'), {
+          collaboratorName: this.share.collaborator.displayName
+        })
+      }
       return this.share.collaborator.displayName
     },
 
@@ -243,7 +258,9 @@ export default {
     saveShareChanges({ role, permissions, expirationDate }) {
       const bitmask = role.hasCustomPermissions
         ? SharePermissions.permissionsToBitmask(permissions)
-        : SharePermissions.permissionsToBitmask(role.permissions(!this.isOcis))
+        : SharePermissions.permissionsToBitmask(
+            role.permissions(!this.isOcis || this.shareType === ShareTypes.space)
+          )
       this.changeShare({
         client: this.$client,
         share: this.share,

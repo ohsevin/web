@@ -82,40 +82,52 @@
                     </router-link>
                   </div>
                   <div class="oc-flex oc-flex-middle">
-                    <oc-button
-                      :id="`space-context-btn-${sanitizeSpaceId(space.id)}`"
-                      v-oc-tooltip="$gettext('Show context menu')"
-                      :aria-label="$gettext('Show context menu')"
-                      appearance="raw"
-                    >
-                      <oc-icon name="more-2" />
-                    </oc-button>
-                    <oc-drop
-                      :drop-id="`space-context-drop-${space.id}`"
-                      :toggle="`#space-context-btn-${sanitizeSpaceId(space.id)}`"
-                      mode="click"
-                      close-on-click
-                      :options="{ delayHide: 0 }"
-                      padding-size="small"
-                      position="bottom-end"
-                    >
-                      <ul class="oc-list oc-files-context-actions">
-                        <li
-                          v-for="(action, actionIndex) in getContextMenuActions(space)"
-                          :key="`action-${actionIndex}`"
-                          class="oc-files-context-action oc-px-s"
-                        >
-                          <oc-button
-                            appearance="raw"
-                            justify-content="left"
-                            @click="action.handler({ resources: [space] })"
+                    <div>
+                      <oc-button
+                        v-oc-tooltip="$gettext('Show invited people')"
+                        :aria-label="$gettext('Show invited people')"
+                        appearance="raw"
+                        @click="openSidebarSharePanel(space)"
+                      >
+                        <oc-icon name="group" />
+                      </oc-button>
+                    </div>
+                    <div>
+                      <oc-button
+                        :id="`space-context-btn-${sanitizeSpaceId(space.id)}`"
+                        v-oc-tooltip="$gettext('Show context menu')"
+                        :aria-label="$gettext('Show context menu')"
+                        appearance="raw"
+                      >
+                        <oc-icon name="more-2" />
+                      </oc-button>
+                      <oc-drop
+                        :drop-id="`space-context-drop-${space.id}`"
+                        :toggle="`#space-context-btn-${sanitizeSpaceId(space.id)}`"
+                        mode="click"
+                        close-on-click
+                        :options="{ delayHide: 0 }"
+                        padding-size="small"
+                        position="bottom-end"
+                      >
+                        <ul class="oc-list oc-files-context-actions">
+                          <li
+                            v-for="(action, actionIndex) in getContextMenuActions(space)"
+                            :key="`action-${actionIndex}`"
+                            class="oc-files-context-action oc-px-s"
                           >
-                            <oc-icon :name="action.icon" fill-type="line" class="oc-flex" />
-                            {{ action.label() }}
-                          </oc-button>
-                        </li>
-                      </ul>
-                    </oc-drop>
+                            <oc-button
+                              appearance="raw"
+                              justify-content="left"
+                              @click="action.handler({ resources: [space] })"
+                            >
+                              <oc-icon :name="action.icon" fill-type="line" class="oc-flex" />
+                              {{ action.label() }}
+                            </oc-button>
+                          </li>
+                        </ul>
+                      </oc-drop>
+                    </div>
                   </div>
                 </div>
                 <p v-if="space.description" class="oc-text-left oc-mt-xs oc-mb-rm oc-text-truncate">
@@ -231,6 +243,10 @@ export default {
   },
   methods: {
     ...mapActions(['createModal', 'hideModal', 'setModalInputErrorMessage']),
+    ...mapActions('Files/sidebar', {
+      openSidebarWithPanel: 'openWithPanel',
+      closeSidebar: 'close'
+    }),
     ...mapMutations('Files', [
       'SET_CURRENT_FOLDER',
       'LOAD_FILES',
@@ -305,6 +321,11 @@ export default {
         return 'state-trashed'
       }
       return ''
+    },
+    async openSidebarSharePanel(space) {
+      await this.closeSidebar()
+      this.SET_FILE_SELECTION([space])
+      this.openSidebarWithPanel('space-share-item')
     }
   }
 }
