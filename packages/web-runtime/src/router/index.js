@@ -18,7 +18,9 @@ function $gettext(msg) {
 const router = new Router({
   //  mode: 'history',
   parseQuery(query) {
-    return qs.parse(query)
+    return qs.parse(query, {
+      allowDots: true
+    })
   },
   stringifyQuery(obj) {
     return qs.stringify(obj, {
