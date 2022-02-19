@@ -21,5 +21,3 @@ Feature: Create public link to folder
       | resource     | name         | role     | dateOfExpiration | password |
       | folderPublic | myPublicLink | uploader | +5 days          | 12345    |
     Then "Alice" should see 1 public link
-
-

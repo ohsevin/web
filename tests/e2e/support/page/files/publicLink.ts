@@ -72,12 +72,7 @@ export class PublicLink {
     }
   }
 
-  daysBetweenMonths = (startDate: Date, endDate: Date): number => {
-    const diff = Math.abs(startDate.getTime() - endDate.getTime())
-    return Math.ceil(diff / (1000 * 3600 * 24))
-  }
-
-  dateWithMonth = (noOfMonths: number): Date => {
+  addMonth = (noOfMonths: number): Date => {
     const date = new Date()
     date.setMonth(date.getMonth() + noOfMonths)
     return date
@@ -95,20 +90,16 @@ export class PublicLink {
       case 'week':
         return this.addDays(new Date(), parseInt(dataOfExpiration) * 7)
       case 'month':
-        return this.addDays(
-          new Date(),
-          this.daysBetweenMonths(new Date(), this.dateWithMonth(parseInt(dataOfExpiration)))
-        )
+        return this.addMonth(parseInt(dataOfExpiration))
       case 'year':
-        return this.addDays(
-          new Date(),
-          this.daysBetweenMonths(new Date(), this.dateWithMonth(parseInt(dataOfExpiration) * 12))
+        return new Date(
+          new Date().setFullYear(new Date().getFullYear() + parseInt(dataOfExpiration))
         )
     }
   }
 
   async selectDate(dataOfExpiration: string): Promise<void> {
-    // await this.actor.page.pause()
+    await this.actor.page.pause()
     const newExpiryDate = this.setActualExpiryDate(this.dateType, dataOfExpiration)
     const expiryDay = newExpiryDate.getDate()
     const expiryMonth = ('0' + (newExpiryDate.getMonth() + 1)).slice(-2)
