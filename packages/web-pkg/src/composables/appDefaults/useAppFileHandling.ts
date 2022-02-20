@@ -29,14 +29,17 @@ export function useAppFileHandling(options: AppFileHandlingOptions): AppFileHand
   const isPublicLinkContext = options.isPublicLinkContext
   const publicLinkPassword = options.publicLinkPassword
 
-  const getUrlForResource = ({ webDavPath, downloadURL }: Resource, query: QueryParameters = null) => {
+  const getUrlForResource = (
+    { webDavPath, downloadURL }: Resource,
+    query: QueryParameters = null
+  ) => {
     const queryStr = qs.stringify(query)
     if (unref(isPublicLinkContext)) {
       // If the resource does not contain the downloadURL we fallback to the normal
       // public files path.
       if (!downloadURL) {
         // TODO: check whether we can fix the resource to always contain public-files in the webDavPath
-        let urlPath = ['public-files', webDavPath].join('/')
+        const urlPath = ['public-files', webDavPath].join('/')
         return [client.files.getFileUrl(urlPath), queryStr].filter(Boolean).join('?')
       }
 

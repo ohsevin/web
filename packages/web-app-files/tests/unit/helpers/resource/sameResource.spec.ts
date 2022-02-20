@@ -10,14 +10,24 @@ describe('isSameResource', () => {
     expect(isSameResource({ id: 1, path: '', webDavPath: '' }, undefined)).toBe(false)
   })
   test('evaluates to false if ids are of different types', () => {
-    expect(isSameResource({ id: 1, path: '', webDavPath: '' }, { id: '1', path: '', webDavPath: '' })).toBe(false)
+    expect(
+      isSameResource({ id: 1, path: '', webDavPath: '' }, { id: '1', path: '', webDavPath: '' })
+    ).toBe(false)
   })
   test('evaluates to false if ids are different values', () => {
-    expect(isSameResource({ id: 1, path: '', webDavPath: '' }, { id: 2, path: '', webDavPath: '' })).toBe(false)
-    expect(isSameResource({ id: '1', path: '', webDavPath: '' }, { id: '2', path: '', webDavPath: '' })).toBe(false)
+    expect(
+      isSameResource({ id: 1, path: '', webDavPath: '' }, { id: 2, path: '', webDavPath: '' })
+    ).toBe(false)
+    expect(
+      isSameResource({ id: '1', path: '', webDavPath: '' }, { id: '2', path: '', webDavPath: '' })
+    ).toBe(false)
   })
   test('evaluates to true if ids are the same', () => {
-    expect(isSameResource({ id: 1, path: '', webDavPath: '' }, { id: 1, path: '', webDavPath: '' })).toBe(true)
-    expect(isSameResource({ id: '1', path: '', webDavPath: '' }, { id: '1', path: '', webDavPath: '' })).toBe(true)
+    expect(
+      isSameResource({ id: 1, path: '', webDavPath: '' }, { id: 1, path: '', webDavPath: '' })
+    ).toBe(true)
+    expect(
+      isSameResource({ id: '1', path: '', webDavPath: '' }, { id: '1', path: '', webDavPath: '' })
+    ).toBe(true)
   })
 })
