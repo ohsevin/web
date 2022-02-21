@@ -1,6 +1,7 @@
 import { Actor } from '../../types'
 import { filesCta } from '../../cta'
 import { Locator } from '@playwright/test'
+import util = require('util')
 
 export class PublicLink {
   private readonly actor: Actor
@@ -14,6 +15,13 @@ export class PublicLink {
   private readonly yearButtonLocator: Locator
   private readonly nextSpanYearLocator: Locator
   private readonly monthAndYearDropdownLocator: Locator
+  private readonly daySelector: string
+  private readonly monthSelector: string
+  private readonly yearSelector: string
+  private readonly publicLinkListSelector: string
+  private readonly roleSelector: string
+  private readonly folderSelector: string
+
   private dateType: string
   constructor({ actor }: { actor: Actor }) {
     this.actor = actor
@@ -33,23 +41,25 @@ export class PublicLink {
       `//div[@class = "vc-nav-container"]/div[@class="vc-nav-header"]//span[position()=3]`
     )
     this.monthAndYearDropdownLocator = this.actor.page.locator(`//div[@class = 'vc-title']`)
+    this.daySelector = `//span[@tabindex='-1' or @tabindex='0'][@aria-label='%s']`
+    this.monthSelector = `//span[@data-id='%s.%s']`
+    this.yearSelector = `//div[@class = "vc-nav-container"]/div[@class="vc-nav-items"]//span[contains(text(),'%s')]`
+    this.publicLinkListSelector = `//ul[@class = 'oc-list oc-list-divider oc-overflow-hidden oc-m-rm']/li`
+    this.roleSelector = `//span[@id="files-role-%s"]`
+    this.folderSelector = `//*[@data-test-resource-name="%s"]/ancestor::tr//button[contains(@class, "files-quick-action-collaborators")]`
   }
 
   async selectRole(role: string): Promise<void> {
     await this.roleDropdownLocator.click()
-    await this.actor.page.locator(`//span[@id="files-role-${role}"]`).click()
+    await this.actor.page.locator(util.format(this.roleSelector, role)).click()
   }
 
   async selectExpiryMonth(year: string, month: string): Promise<void> {
-    const monthLocator = await this.actor.page.locator(`//span[@data-id='${year}.${month}']`)
-    await monthLocator.click()
+    await this.actor.page.locator(util.format(this.monthSelector, year, month)).click()
   }
 
   async selectExpiryDay(dayMonthYear: string): Promise<void> {
-    const dayLocator = await this.actor.page.locator(
-      `//span[@tabindex='-1' or @tabindex='0'][@aria-label='${dayMonthYear}']`
-    )
-    await dayLocator.click()
+    await this.actor.page.locator(util.format(this.daySelector, dayMonthYear)).click()
   }
 
   checkDaysType = (stringDate: string): string => {
@@ -138,7 +148,7 @@ export class PublicLink {
           newExpiryDate.getFullYear() <= parseInt(splitNextSpanYear[1])
         ) {
           const yearLocator = await this.actor.page.locator(
-            `//div[@class = "vc-nav-container"]/div[@class="vc-nav-items"]//span[contains(text(),'${expiryYear}')]`
+            util.format(this.yearSelector, expiryYear)
           )
           await yearLocator.click()
           break
@@ -152,12 +162,8 @@ export class PublicLink {
   }
 
   async isPublicLinkCreated(noOfPublicLink: number): Promise<void> {
-    await this.actor.page.waitForSelector(
-      `//ul[@class = 'oc-list oc-list-divider oc-overflow-hidden oc-m-rm']/li`
-    )
-    const publicLinkCount = await this.actor.page
-      .locator(`//ul[@class = 'oc-list oc-list-divider oc-overflow-hidden oc-m-rm']/li`)
-      .count()
+    await this.actor.page.waitForSelector(this.publicLinkListSelector)
+    const publicLinkCount = await this.actor.page.locator(this.publicLinkListSelector).count()
 
     if (publicLinkCount !== noOfPublicLink) {
       throw new Error(
@@ -210,7 +216,7 @@ export class PublicLink {
       case 'QUICK_ACTION':
         await page
           .locator(
-            `//*[@data-test-resource-name="${folderName}"]/ancestor::tr//button[contains(@class, "files-quick-action-collaborators")]`
+            util.format(this.folderSelector,folderName)
           )
           .click()
         break
