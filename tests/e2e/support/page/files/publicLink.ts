@@ -214,11 +214,7 @@ export class PublicLink {
 
     switch (via) {
       case 'QUICK_ACTION':
-        await page
-          .locator(
-            util.format(this.folderSelector,folderName)
-          )
-          .click()
+        await page.locator(util.format(this.folderSelector, folderName)).click()
         break
 
       case 'SIDEBAR_PANEL':
