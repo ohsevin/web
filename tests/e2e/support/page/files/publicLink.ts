@@ -99,7 +99,6 @@ export class PublicLink {
   }
 
   async selectDate(dataOfExpiration: string): Promise<void> {
-    await this.actor.page.pause()
     const newExpiryDate = this.setActualExpiryDate(this.dateType, dataOfExpiration)
     const expiryDay = newExpiryDate.getDate()
     const expiryMonth = ('0' + (newExpiryDate.getMonth() + 1)).slice(-2)
