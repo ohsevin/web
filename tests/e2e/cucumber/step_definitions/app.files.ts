@@ -3,6 +3,7 @@ import { World } from '../environment'
 import { config } from '../../config'
 import { FilesPage } from '../../support'
 import { expect } from '@playwright/test'
+import { PublicLinkPage } from '../../support/page/publicLinkPage'
 
 When(
   '{string} navigates to the files page',
@@ -403,3 +404,33 @@ When(
     }
   }
 )
+
+When('the public access the last public link created', async function (this: World): Promise<void> {
+  const publicUser = new PublicLinkPage()
+  await publicUser.navigateToPublicLink()
+})
+
+When(
+  'the public authenticates with correct password {string} to access public link',
+  async function (this: World, password: string): Promise<void> {
+    const publicUser = new PublicLinkPage()
+    await publicUser.authenticatePassword(password)
+  }
+)
+
+Then(
+  'the following file should not be visible on the public link',
+  async function (this: World, stepTable: DataTable): Promise<void> {
+    const publicUser = new PublicLinkPage()
+
+    const files = stepTable.raw().map((f) => f[0])
+    for (const file of files) {
+      await publicUser.isFileVisible(file)
+    }
+  }
+)
+
+Then('the unauthorized user closes link', async function (this: World): Promise<void> {
+  const publicUser = new PublicLinkPage()
+  await publicUser.logOut()
+})

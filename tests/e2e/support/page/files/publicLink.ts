@@ -3,6 +3,8 @@ import { filesCta } from '../../cta'
 import { Locator } from '@playwright/test'
 import util = require('util')
 
+export let lastCreatedPublicLink: string
+
 export class PublicLink {
   private readonly actor: Actor
   private readonly publicLinkButtonLocator: Locator
@@ -225,5 +227,9 @@ export class PublicLink {
     await this.publicLinkButtonLocator.click()
     await this.fillThePublicLinkForm({ name, password, role, dateOfExpiration })
     await this.createLinkButtonLocator.click()
+
+    lastCreatedPublicLink = await page.textContent(
+      `//ul/li//h5[contains(text(),'${name}')]/following-sibling::div/a`
+    )
   }
 }

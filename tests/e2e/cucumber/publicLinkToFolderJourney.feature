@@ -21,3 +21,8 @@ Feature: Create public link to folder
       | resource     | name         | role     | dateOfExpiration | password |
       | folderPublic | myPublicLink | uploader | +5 days          | 12345    |
     Then "Alice" should see 1 public link
+    When the public access the last public link created
+    And the public authenticates with correct password "12345" to access public link
+    Then the following file should not be visible on the public link
+      | lorem.txt |
+    And the unauthorized user closes link
