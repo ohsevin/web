@@ -19,10 +19,7 @@
         :items="breadcrumbs"
       >
         <template #contextMenu>
-          <context-actions
-            v-if="currentFolder && breadcrumbs.length > 1"
-            :items="[currentFolder]"
-          />
+          <context-actions v-if="showContextActions" :items="[currentFolder]" />
         </template>
       </oc-breadcrumb>
       <h1 class="oc-invisible-sr" v-text="pageTitle" />
@@ -187,6 +184,13 @@ export default {
     ...mapGetters('Files', ['files', 'currentFolder', 'selectedFiles', 'publicLinkPassword']),
     ...mapState('Files', ['areHiddenFilesShown']),
 
+    showContextActions() {
+      if (this.isSpacesProjectLocation) {
+        return this.currentFolder && this.breadcrumbs.length > 2
+      }
+
+      return this.currentFolder && this.breadcrumbs.length > 1
+    },
     mimetypesAllowedForCreation() {
       // we can't use `mapGetters` here because the External app doesn't exist in all deployments
       const mimeTypes = this.$store.getters['External/mimeTypes']
