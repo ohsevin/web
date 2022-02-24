@@ -4,6 +4,46 @@
     <template v-else>
       <not-found-message v-if="!space.id" class="space-not-found oc-height-1-1" />
       <div v-else-if="isSpaceRoot">
+        <portal v-if="$data.$_editQuota_modalOpen" to="app.runtime.modal">
+          <oc-modal
+            id="edit-quota-modal"
+            focus-trap-initial="#quota-input-select"
+            :title="$gettext('Edit quota for space') + ' ' + space.name"
+            :button-cancel-text="$gettext('Cancel')"
+            :button-confirm-text="$gettext('Confirm')"
+            :buttonConfirmDisabled="$_editQuota_modalButtonConfirmDisabled"
+            @confirm="$_editQuota_editQuotaSpace"
+            @cancel="$_editQuota_closeModal"
+          >
+            <template #content>
+              <oc-select
+                id="quota-input-select"
+                v-model="$data.$_editQuota_selectedOption"
+                taggable
+                push-tags
+                :clearable="false"
+                :options="$data.$_editQuota_options"
+                :create-option="$_editQuota_createOption"
+                option-label="displayValue"
+                :label="$gettext('Space quota')"
+              >
+                <template #selected-option="{ displayValue, displayUnit }">
+                  <span>{{ displayValue }}</span>
+                  <span v-if="displayUnit" class="oc-text-muted oc-ml-s">{{ displayUnit }}</span>
+                </template>
+                <template #search="{ attributes, events }">
+                  <input class="vs__search" v-bind="attributes" v-on="events" />
+                </template>
+                <template #option="{ displayValue, displayUnit }">
+                  <div class="oc-flex oc-flex-between">
+                    <span>{{ displayValue }}</span>
+                    <span v-if="displayUnit" class="oc-text-muted">{{ displayUnit }}</span>
+                  </div>
+                </template>
+              </oc-select>
+            </template>
+          </oc-modal>
+        </portal>
         <portal v-if="$data.$_editReadmeContent_modalOpen" to="app.runtime.modal">
           <oc-modal
             focus-trap-initial="#description-input-area"
@@ -175,6 +215,7 @@ import EditDescription from '../../mixins/spaces/actions/editDescription'
 import ShowDetails from '../../mixins/spaces/actions/showDetails'
 import UploadImage from '../../mixins/spaces/actions/uploadImage'
 import EditReadmeContent from '../../mixins/spaces/actions/editReadmeContent'
+import EditQuota from '../../mixins/spaces/actions/editQuota'
 
 const visibilityObserver = new VisibilityObserver()
 
@@ -199,7 +240,8 @@ export default {
     ShowDetails,
     Restore,
     UploadImage,
-    EditReadmeContent
+    EditReadmeContent,
+    EditQuota
   ],
   setup() {
     const router = useRouter()
@@ -431,6 +473,7 @@ export default {
         ...this.$_editDescription_items,
         ...this.$_editReadmeContent_items,
         ...this.$_uploadImage_items,
+        ...this.$_editQuota_items,
         ...this.$_restore_items,
         ...this.$_delete_items,
         ...this.$_disable_items,
@@ -488,6 +531,10 @@ export default {
 </script>
 
 <style lang="scss">
+#edit-quota-modal > .oc-modal {
+  overflow: initial;
+}
+
 .space-overview {
   &-image {
     border-radius: 10px;
