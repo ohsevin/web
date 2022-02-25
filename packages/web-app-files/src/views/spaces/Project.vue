@@ -11,7 +11,7 @@
             :title="$gettext('Edit quota for space') + ' ' + space.name"
             :button-cancel-text="$gettext('Cancel')"
             :button-confirm-text="$gettext('Confirm')"
-            :buttonConfirmDisabled="$_editQuota_modalButtonConfirmDisabled"
+            :button-confirm-disabled="$_editQuota_modalButtonConfirmDisabled"
             @confirm="$_editQuota_editQuotaSpace"
             @cancel="$_editQuota_closeModal"
           >
@@ -19,6 +19,7 @@
               <oc-select
                 id="quota-input-select"
                 v-model="$data.$_editQuota_selectedOption"
+                :selectable="$_editQuota_OptionSelectable"
                 taggable
                 push-tags
                 :clearable="false"
@@ -34,11 +35,12 @@
                 <template #search="{ attributes, events }">
                   <input class="vs__search" v-bind="attributes" v-on="events" />
                 </template>
-                <template #option="{ displayValue, displayUnit }">
+                <template #option="{ displayValue, displayUnit, error }">
                   <div class="oc-flex oc-flex-between">
                     <span>{{ displayValue }}</span>
                     <span v-if="displayUnit" class="oc-text-muted">{{ displayUnit }}</span>
                   </div>
+                  <div v-if="error" class="oc-text-input-danger">{{ error }}</div>
                 </template>
               </oc-select>
             </template>

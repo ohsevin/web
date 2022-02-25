@@ -22,6 +22,11 @@ export default {
           value: 10 * Math.pow(10, 9)
         },
         {
+          displayValue: '50',
+          displayUnit: 'GB',
+          value: 50 * Math.pow(10, 9)
+        },
+        {
           displayValue: '100',
           displayUnit: 'GB',
           value: 100 * Math.pow(10, 9)
@@ -37,8 +42,9 @@ export default {
           value: 10000 * Math.pow(10, 9)
         },
         {
-          displayValue: 'Unlimited quota',
-          displayUnit: ''
+          displayValue: this.$gettext('No restriction'),
+          displayUnit: '',
+          unlimited: true
         }
       ],
       $_editQuota_selectedOption: {}
@@ -50,7 +56,7 @@ export default {
       return [
         {
           name: 'editQuota',
-          icon: 'markdown',
+          icon: 'hard-drive',
           label: () => {
             return this.$gettext('Edit quota')
           },
@@ -75,7 +81,6 @@ export default {
   methods: {
     ...mapActions(['showMessage']),
     ...mapMutations('Files', ['UPDATE_RESOURCE_FIELD']),
-
     $_editQuota_trigger({ resources }) {
       if (resources.length !== 1) {
         return
@@ -90,7 +95,10 @@ export default {
         this.$data.$_editQuota_selectedOption = selectedQuotaInOptions
       } else {
         const newOption = {
-          displayValue: (resources[0].spaceQuota.total * Math.pow(10, -9)).toString(),
+          displayValue: (resources[0].spaceQuota.total * Math.pow(10, -9))
+            .toFixed(2)
+            .toString()
+            .replace('.00', ''),
           displayUnit: 'GB',
           value: resources[0].spaceQuota.total
         }
@@ -101,14 +109,20 @@ export default {
             .sort((a, b) => a.value - b.value),
           ...this.$data.$_editQuota_options.filter((o) => !o.value)
         ]
-
-        console.log(this.$data.$_editQuota_options)
         this.$data.$_editQuota_selectedOption = newOption
       }
     },
 
     $_editQuota_editQuotaSpace() {
       const space = this.currentFolder
+      const newTotalQuota = this.$data.$_editQuota_selectedOption.value
+
+      if (isNaN(newTotalQuota)) {
+        return this.showMessage({
+          title: this.$gettext('Editing space quota failed…'),
+          status: 'danger'
+        })
+      }
 
       const graphClient = clientService.graphAuthenticated(this.configuration.server, this.getToken)
       return graphClient.drives
@@ -117,15 +131,12 @@ export default {
           { quota: { total: this.$data.$_editQuota_selectedOption.value } },
           {}
         )
-        .then(() => {
+        .then(({ data }) => {
           this.$_editQuota_closeModal()
           this.UPDATE_RESOURCE_FIELD({
             id: space.id,
             field: 'spaceQuota',
-            value: {
-              ...space.spaceQuota,
-              ...{ total: this.$data.$_editQuota_selectedOption.value }
-            }
+            value: data.quota
           })
           this.showMessage({
             title: this.$gettext('Space quota successfully edited')
@@ -143,14 +154,36 @@ export default {
     $_editQuota_closeModal() {
       this.$data.$_editQuota_modalOpen = false
     },
+    $_editQuota_OptionSelectable(option) {
+      if (option.unlimited) {
+        return true
+      }
 
-    $_editQuota_createOption(value) {
-      console.log(this.$data.$_editQuota_options)
-      const displayValue = value.replace(',', '.')
+      if (!option.value) {
+        return false
+      }
+
+      return !isNaN(option.value)
+    },
+    $_editQuota_createOption(option) {
+      if (option.endsWith('.') || option.endsWith(',')) {
+        option = option.slice(0, -1)
+      }
+
+      const optionIsNumberRegex = /^[1-9]\d*(([.,])\d+)?$/g
+
+      if (!optionIsNumberRegex.test(option)) {
+        return {
+          displayValue: option,
+          error: this.$gettext('Invalid input')
+        }
+      }
+
+      option = option.replace(',', '.')
       return {
-        displayValue: value.replace(',', '.'),
+        displayValue: parseFloat(option).toFixed(2).toString().replace('.00', ''),
         displayUnit: 'GB',
-        value: parseFloat(displayValue) * Math.pow(10, 9)
+        value: parseFloat(option).toFixed(2) * Math.pow(10, 9)
       }
     }
   }
