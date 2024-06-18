@@ -4,6 +4,6 @@
   "description": "ownCloud web markdown-editor",
   "license": "AGPL-3.0",
   "dependencies": {
-    "marked": "^3.0.0"
+    "marked": "^4.0.10"
   }
 }
